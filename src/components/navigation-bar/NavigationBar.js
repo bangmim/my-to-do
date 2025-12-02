@@ -83,8 +83,3 @@ export function NavigationBar({ onGoHome, onGoDashboard }) {
         </nav>
     );
 }
-
-NavigationBar.propTypes = {
-    onGoHome: PropTypes.func.isRequired,
-    onGoDashboard: PropTypes.func.isRequired,
-};
