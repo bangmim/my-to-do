@@ -83,7 +83,7 @@ export function Calendar({ todos, onDateClick }) {
     };
 
     return (
-        <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm max-w-lg mx-auto">
             {/* 헤더 */}
             <div className="mb-2 flex items-center justify-between">
                 <button
