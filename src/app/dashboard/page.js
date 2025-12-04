@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { getCurrentUser } from '@/lib/auth';
 import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
+import { Calendar } from '@/components/calendar/Calendar';
+import { DateTodoModal } from '@/components/date-todo-modal/DateTodoModal';
 
 export default function DashboardPage() {
     const router = useRouter();
@@ -15,6 +17,10 @@ export default function DashboardPage() {
         pending: 0,
     });
     const [monthlyStats, setMonthlyStats] = useState([]);
+    const [todos, setTodos] = useState([]);
+    const [selectedDate, setSelectedDate] = useState(null);
+    const [selectedDateTodos, setSelectedDateTodos] = useState([]);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
         async function fetchUser() {
@@ -33,6 +39,7 @@ export default function DashboardPage() {
                 if (user?.id) {
                     fetchStats(user.id);
                     fetchMonthlyStats(user.id);
+                    fetchTodos(user.id);
                 }
             } catch (err) {
                 // AuthSessionMissingError는 정상적인 상황
@@ -47,6 +54,20 @@ export default function DashboardPage() {
 
         fetchUser();
     }, [router]);
+
+    const fetchTodos = async (userId) => {
+        try {
+            const { data, error } = await supabase
+                .from('todos')
+                .select('*')
+                .eq('user_id', userId)
+                .order('created_at', { ascending: false });
+            if (error) throw error;
+            setTodos(data || []);
+        } catch (err) {
+            console.error('Error fetching todos:', err);
+        }
+    };
 
     const fetchStats = async (userId) => {
         try {
@@ -93,6 +114,18 @@ export default function DashboardPage() {
         }
     };
 
+    const handleDateClick = (date, dateTodos) => {
+        setSelectedDate(date);
+        setSelectedDateTodos(dateTodos);
+        setIsModalOpen(true);
+    };
+
+    const handleCloseModal = () => {
+        setIsModalOpen(false);
+        setSelectedDate(null);
+        setSelectedDateTodos([]);
+    };
+
     if (isLoading) {
         return (
             <main className="flex min-h-screen items-center justify-center bg-slate-900 px-4 py-16">
@@ -115,6 +148,10 @@ export default function DashboardPage() {
                 <p className="text-sm text-slate-500">사용자 정보</p>
                 <p className="text-sm text-slate-700">이메일: {user.email}</p>
             </div>
+
+            {/* 달력 카드 */}
+            <Calendar todos={todos} onDateClick={handleDateClick} />
+
             {/* 메인 콘텐츠 */}
 
             <div className=" py-8">
@@ -202,6 +239,14 @@ export default function DashboardPage() {
                     )}
                 </div>
             </div>
+
+            {/* 날짜별 Todo 모달 */}
+            <DateTodoModal
+                isOpen={isModalOpen}
+                date={selectedDate}
+                todos={selectedDateTodos}
+                onClose={handleCloseModal}
+            />
         </div>
     );
 }
