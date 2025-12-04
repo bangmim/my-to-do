@@ -17,7 +17,7 @@ export default function SignupPage() {
                     <p className="text-sm text-slate-600">
                         이미 계정이 있으신가요?{' '}
                         <Link
-                            href="/login"
+                            href="/signin"
                             className="font-medium text-teal-600 transition hover:text-teal-700 hover:underline"
                         >
                             로그인

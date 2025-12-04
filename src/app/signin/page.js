@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { LoginForm } from '@/components/login-form/LoginForm';
 import { getCurrentUser } from '@/lib/auth';
 
@@ -56,6 +57,18 @@ export default function LoginPage() {
                 </header>
 
                 <LoginForm onSuccess={handleSuccess} />
+
+                <div className="text-center">
+                    <p className="text-sm text-slate-600">
+                        계정이 없으신가요?{' '}
+                        <Link
+                            href="/signup"
+                            className="font-medium text-teal-600 transition hover:text-teal-700 hover:underline"
+                        >
+                            회원가입
+                        </Link>
+                    </p>
+                </div>
             </div>
         </main>
     );
