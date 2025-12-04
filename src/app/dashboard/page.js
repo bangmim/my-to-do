@@ -14,6 +14,7 @@ export default function DashboardPage() {
         completed: 0,
         pending: 0,
     });
+    const [monthlyStats, setMonthlyStats] = useState([]);
 
     useEffect(() => {
         async function fetchUser() {
@@ -29,7 +30,10 @@ export default function DashboardPage() {
                     return;
                 }
                 setUser(user || null);
-                fetchStats(user.id);
+                if (user?.id) {
+                    fetchStats(user.id);
+                    fetchMonthlyStats(user.id);
+                }
             } catch (err) {
                 // AuthSessionMissingError는 정상적인 상황
                 if (err?.message && !err.message.includes('Auth session missing')) {
@@ -63,6 +67,32 @@ export default function DashboardPage() {
         }
     };
 
+    const fetchMonthlyStats = async (userId) => {
+        if (!userId) {
+            console.log('No user ID available');
+            setMonthlyStats([]);
+            return;
+        }
+
+        try {
+            // view를 통해 월별 통계 조회
+            const { data, error } = await supabase
+                .from('monthly_todo_stats')
+                .select('*')
+                .eq('user_id', userId)
+                .order('month', { ascending: false })
+                .limit(6);
+            if (error) throw error;
+            console.log('Monthly stats data:', data); // 디버깅용
+            setMonthlyStats(data || []);
+        } catch (err) {
+            console.error('Error fetching monthly stats:', err);
+            alert('월별 통계 정보를 불러오는데 실패했습니다.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     if (isLoading) {
         return (
             <main className="flex min-h-screen items-center justify-center bg-slate-900 px-4 py-16">
@@ -78,7 +108,7 @@ export default function DashboardPage() {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 px-8">
             <h1 className="text-2xl font-semibold text-slate-700">대시보드</h1>
             {/* 사용자 정보 카드 */}
             <div className="rounded-lg flex flex-row items-center border border-slate-200 bg-white p-6 rounded-lg shadow-sm gap-8">
@@ -87,7 +117,7 @@ export default function DashboardPage() {
             </div>
             {/* 메인 콘텐츠 */}
 
-            <div className="px-8 py-8">
+            <div className=" py-8">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {/* 전체 할 일 카드 */}
                     <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
@@ -106,6 +136,70 @@ export default function DashboardPage() {
                         <p className="mb-2 text-sm text-slate-500">진행중인 할 일</p>
                         <p className="text-4xl font-bold text-yellow-500">{stats.pending}</p>
                     </div>
+                </div>
+                {/* 월별 통계 카드 */}
+                <div className="mt-6 rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+                    <h2 className="mb-4 text-lg font-semibold text-slate-700">월별 통계</h2>
+                    {monthlyStats && monthlyStats.length > 0 ? (
+                        <div className="overflow-x-auto">
+                            <table className="w-full">
+                                <thead>
+                                    <tr className="border-b border-slate-200">
+                                        <th className="px-4 py-3 text-left text-sm font-medium text-slate-700">월</th>
+                                        <th className="px-4 py-3 text-right text-sm font-medium text-slate-700">
+                                            전체
+                                        </th>
+                                        <th className="px-4 py-3 text-right text-sm font-medium text-slate-700">
+                                            완료
+                                        </th>
+                                        <th className="px-4 py-3 text-right text-sm font-medium text-slate-700">
+                                            진행중
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {monthlyStats.map((stat, index) => {
+                                        // 다양한 필드명 시도 (month, month_year, period 등)
+                                        const monthValue = stat.month || stat.month_year || stat.period || stat.date;
+                                        let monthDate;
+
+                                        if (monthValue) {
+                                            monthDate = new Date(monthValue);
+                                        } else {
+                                            // month 필드가 없으면 인덱스로 임시 처리
+                                            monthDate = new Date();
+                                            monthDate.setMonth(monthDate.getMonth() - index);
+                                        }
+
+                                        const monthLabel = `${monthDate.getFullYear()}년 ${monthDate.getMonth() + 1}월`;
+
+                                        // 다양한 필드명 시도
+                                        const total = stat.total_todos;
+                                        const completed = stat.completed_todos;
+                                        const pending = total - completed;
+
+                                        return (
+                                            <tr
+                                                key={stat.month || stat.month_year || stat.period || index}
+                                                className="border-b border-slate-100 hover:bg-slate-50"
+                                            >
+                                                <td className="px-4 py-3 text-sm text-slate-700">{monthLabel}</td>
+                                                <td className="px-4 py-3 text-right text-sm text-blue-600">{total}</td>
+                                                <td className="px-4 py-3 text-right text-sm font-medium text-green-600">
+                                                    {completed}
+                                                </td>
+                                                <td className="px-4 py-3 text-right text-sm font-medium text-yellow-500">
+                                                    {pending}
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                    ) : (
+                        <p className="text-sm text-slate-500">월별 통계 데이터가 없습니다.</p>
+                    )}
                 </div>
             </div>
         </div>
