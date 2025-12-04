@@ -24,21 +24,21 @@ export default function DashboardPage() {
                 } = await getCurrentUser();
                 if (error || !user) {
                     console.error('Error fetching user:', error);
-                    router.push('/signin');
+                    router.replace('/signin');
                     return;
                 }
                 setUser(user || null);
                 fetchStats(user.id);
             } catch (err) {
                 console.error('Error:', err);
-                router.push('/signin');
+                router.replace('/signin');
             } finally {
                 setIsLoading(false);
             }
         }
 
         fetchUser();
-    }, []);
+    }, [router]);
 
     const fetchStats = async (userId) => {
         try {
@@ -67,6 +67,10 @@ export default function DashboardPage() {
                 </div>
             </main>
         );
+    }
+
+    if (!user) {
+        return null;
     }
 
     return (

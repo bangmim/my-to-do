@@ -14,12 +14,17 @@ export function TodoApp() {
     const [user, setUser] = useState(null);
     useEffect(() => {
         const getUser = async () => {
-            const { data: user, error } = await supabase.auth.getUser();
-            if (error) {
-                console.error('Error fetching user:', error);
-                return;
+            try {
+                const { data: user, error } = await supabase.auth.getSession();
+                if (error) {
+                    console.error('Error fetching user:', error);
+                    // 인증 에러 시 로그인 페이지로 리다이렉트하지 않음 (홈은 공개 페이지)
+                    return;
+                }
+                setUser(user);
+            } catch (err) {
+                console.error('Unexpected error:', err);
             }
-            setUser(user);
         };
         getUser();
     }, []);

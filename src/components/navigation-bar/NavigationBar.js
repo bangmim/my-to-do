@@ -12,14 +12,6 @@ export function NavigationBar() {
     const [isLoading, setIsLoading] = useState(true);
     const isDashboard = pathname === '/dashboard';
 
-    const handleGoHome = () => {
-        router.push('/');
-    };
-
-    const handleGoDashboard = () => {
-        router.push('/dashboard');
-    };
-
     useEffect(() => {
         async function checkUser() {
             try {
@@ -56,6 +48,13 @@ export function NavigationBar() {
         router.push('/signin');
     };
 
+    const handleDashboardClick = (e) => {
+        if (!user) {
+            e.preventDefault();
+            router.push('/signin');
+        }
+    };
+
     return (
         <nav
             className={`flex w-full items-center justify-between border border-slate-200 bg-white/95 p-4 shadow ${
@@ -68,6 +67,7 @@ export function NavigationBar() {
             <div className="flex gap-2">
                 <Link
                     href="/dashboard"
+                    onClick={handleDashboardClick}
                     className="rounded-md px-3 py-1 text-sm font-medium text-slate-700 transition-colors hover:bg-teal-50 hover:text-teal-700"
                     aria-label="대시보드"
                 >
@@ -76,13 +76,13 @@ export function NavigationBar() {
                 {!isLoading && (
                     <>
                         {user ? (
-                            <Link
-                                href="/signout"
+                            <button
+                                onClick={handleSignOut}
                                 className="rounded-md px-3 py-1 text-sm font-medium text-slate-700 transition-colors hover:bg-teal-50 hover:text-teal-700"
                                 aria-label="로그아웃"
                             >
                                 로그아웃
-                            </Link>
+                            </button>
                         ) : (
                             <Link
                                 href="/signin"
