@@ -67,6 +67,27 @@ export function TodoApp() {
         }
     };
 
+    const handleDelete = useCallback(async (id) => {
+        if (!confirm('정말 이 할 일을 삭제하시겠습니까?')) {
+            return;
+        }
+
+        try {
+            const { error } = await supabase.from('todos').delete().eq('id', id);
+
+            if (error) {
+                console.error('Error deleting todo:', error);
+                alert(`할 일 삭제 실패: ${error.message}`);
+                return;
+            }
+
+            setTodos((prev) => prev.filter((todo) => todo.id !== id));
+        } catch (err) {
+            console.error('Unexpected error:', err);
+            alert('예상치 못한 오류가 발생했습니다.');
+        }
+    }, []);
+
     const handleModalChange = useCallback((event) => {
         setNewTodoText(event.target.value);
     }, []);
@@ -136,9 +157,15 @@ export function TodoApp() {
                         </p>
                     </div>
 
-                    <TodoSection title="할 일" todos={todos} onToggle={handleToggle} />
+                    <TodoSection title="할 일" todos={todos} onToggle={handleToggle} onDelete={handleDelete} />
 
-                    <TodoSection title="완료" todos={todos} onToggle={handleToggle} isCompleted />
+                    <TodoSection
+                        title="완료"
+                        todos={todos}
+                        onToggle={handleToggle}
+                        onDelete={handleDelete}
+                        isCompleted
+                    />
                 </TodoSection>
 
                 <FloatingButton onClick={handleOpenModal} />

@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import { TodoList } from '@/components/todo-list/TodoList';
 import { CompletedList } from '@/components/todo-list/CompletedList';
 
-export function TodoSection({ title, children, todos, onToggle, isCompleted }) {
+export function TodoSection({ title, children, todos, onToggle, onDelete, isCompleted }) {
     const filteredTodos = useMemo(() => {
         if (!todos) return [];
         if (isCompleted) {
@@ -21,9 +21,9 @@ export function TodoSection({ title, children, todos, onToggle, isCompleted }) {
             {todos &&
                 onToggle &&
                 (isCompleted ? (
-                    <CompletedList todos={filteredTodos} onToggle={onToggle} />
+                    <CompletedList todos={filteredTodos} onToggle={onToggle} onDelete={onDelete} />
                 ) : (
-                    <TodoList todos={filteredTodos} onToggle={onToggle} isChecked={false} />
+                    <TodoList todos={filteredTodos} onToggle={onToggle} onDelete={onDelete} isChecked={false} />
                 ))}
         </section>
     );
@@ -40,5 +40,6 @@ TodoSection.propTypes = {
         })
     ),
     onToggle: PropTypes.func,
+    onDelete: PropTypes.func,
     isCompleted: PropTypes.bool,
 };
