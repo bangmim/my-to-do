@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 import { Calendar } from '@/components/calendar/Calendar';
 import { DateTodoModal } from '@/components/date-todo-modal/DateTodoModal';
+import { CompletionChart } from '@/components/completion-chart/CompletionChart';
 
 export default function DashboardPage() {
     const router = useRouter();
@@ -174,6 +175,12 @@ export default function DashboardPage() {
                         <p className="text-4xl font-bold text-yellow-500">{stats.pending}</p>
                     </div>
                 </div>
+
+                {/* 달성률 차트 */}
+                <div className="mt-6">
+                    <CompletionChart total={stats.total} completed={stats.completed} />
+                </div>
+
                 {/* 월별 통계 카드 */}
                 <div className="mt-6 rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
                     <h2 className="mb-4 text-lg font-semibold text-slate-700">월별 통계</h2>
