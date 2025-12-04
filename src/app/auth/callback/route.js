@@ -16,5 +16,3 @@ export async function GET (request) {
   return NextResponse.redirect(new URL('/', requestUrl.origin))
 }
 
-
-
