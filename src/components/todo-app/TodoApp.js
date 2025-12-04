@@ -135,18 +135,10 @@ export function TodoApp() {
         }
     };
 
-    const handleGoHome = () => {
-        window.location.href = '/';
-    };
-
-    const handleGoDashboard = () => {
-        window.location.href = '/dashboard';
-    };
-
     return (
         <div className="flex min-h-screen w-full items-center justify-center bg-gray-50 px-4 py-10">
             <div className="relative w-full max-w-xl space-y-5 rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-2xl backdrop-blur-xl">
-                <NavigationBar onGoHome={handleGoHome} onGoDashboard={handleGoDashboard} />
+                <NavigationBar />
 
                 <TodoSection title="Todo Studio">
                     <div className="space-y-1 text-center">

@@ -1,26 +1,37 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { NavigationBar } from '@/components/navigation-bar/NavigationBar';
 import { getCurrentUser } from '@/lib/auth';
+import { supabase } from '@/lib/supabaseClient';
+import { useRouter } from 'next/navigation';
 
 export default function DashboardPage() {
+    const router = useRouter();
     const [user, setUser] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [stats, setStats] = useState({
+        total: 0,
+        completed: 0,
+        pending: 0,
+    });
 
     useEffect(() => {
         async function fetchUser() {
             try {
-                const { data, error } = await getCurrentUser();
-                if (error) {
+                const {
+                    data: { user },
+                    error,
+                } = await getCurrentUser();
+                if (error || !user) {
                     console.error('Error fetching user:', error);
-                    window.location.href = '/signin';
+                    router.push('/signin');
                     return;
                 }
-                setUser(data?.user || null);
+                setUser(user || null);
+                fetchStats(user.id);
             } catch (err) {
                 console.error('Error:', err);
-                window.location.href = '/signin';
+                router.push('/signin');
             } finally {
                 setIsLoading(false);
             }
@@ -29,12 +40,23 @@ export default function DashboardPage() {
         fetchUser();
     }, []);
 
-    const handleGoHome = () => {
-        window.location.href = '/';
-    };
+    const fetchStats = async (userId) => {
+        try {
+            const { data: todos, error } = await supabase.from('todos').select('*').eq('user_id', userId);
+            if (error) throw error;
 
-    const handleGoDashboard = () => {
-        window.location.href = '/dashboard';
+            const completed = todos.filter((todo) => todo.completed).length;
+            setStats({
+                total: todos.length,
+                completed: completed,
+                pending: todos.length - completed,
+            });
+        } catch (err) {
+            console.error('Error fetching stats:', err);
+            alert('대시보드 정보를 불러오는데 실패했습니다.');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     if (isLoading) {
@@ -47,26 +69,37 @@ export default function DashboardPage() {
         );
     }
 
-    if (!user) {
-        return null;
-    }
-
     return (
-        <main className="flex min-h-screen items-center justify-center bg-slate-900 px-4 py-16">
-            <div className="w-full max-w-4xl space-y-6 rounded-2xl border border-slate-200 bg-white/95 p-8 shadow-2xl">
-                <NavigationBar onGoHome={handleGoHome} onGoDashboard={handleGoDashboard} />
+        <div className="space-y-6">
+            <h1 className="text-2xl font-semibold text-slate-700">대시보드</h1>
+            {/* 사용자 정보 카드 */}
+            <div className="rounded-lg flex flex-row items-center border border-slate-200 bg-white p-6 rounded-lg shadow-sm gap-8">
+                <p className="text-sm text-slate-500">사용자 정보</p>
+                <p className="text-sm text-slate-700">이메일: {user.email}</p>
+            </div>
+            {/* 메인 콘텐츠 */}
 
-                <header className="space-y-1 text-center">
-                    <p className="text-xs font-semibold uppercase tracking-[0.4em] text-teal-600">대시보드</p>
-                    <h1 className="text-2xl font-semibold text-slate-900">환영합니다!</h1>
-                    <p className="text-sm text-slate-500">{user.email}로 로그인하셨습니다.</p>
-                </header>
+            <div className="px-8 py-8">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {/* 전체 할 일 카드 */}
+                    <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+                        <p className="mb-2 text-sm text-slate-500">전체 할 일</p>
+                        <p className="text-4xl font-bold text-blue-600">{stats.total}</p>
+                    </div>
 
-                <div className="rounded-xl border border-slate-200 bg-slate-50 p-6">
-                    <h2 className="mb-4 text-lg font-semibold text-slate-900">대시보드 콘텐츠</h2>
-                    <p className="text-sm text-slate-600">여기에 대시보드 콘텐츠를 추가하세요.</p>
+                    {/* 완료된 할 일 카드 */}
+                    <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+                        <p className="mb-2 text-sm text-slate-500">완료된 할 일</p>
+                        <p className="text-4xl font-bold text-green-600">{stats.completed}</p>
+                    </div>
+
+                    {/* 진행중인 할 일 카드 */}
+                    <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+                        <p className="mb-2 text-sm text-slate-500">진행중인 할 일</p>
+                        <p className="text-4xl font-bold text-yellow-500">{stats.pending}</p>
+                    </div>
                 </div>
             </div>
-        </main>
+        </div>
     );
 }

@@ -1,13 +1,24 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import PropTypes from 'prop-types';
 import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
 import { getCurrentUser, signOut, onAuthStateChange } from '@/lib/auth';
 
-export function NavigationBar({ onGoHome, onGoDashboard }) {
+export function NavigationBar() {
+    const router = useRouter();
+    const pathname = usePathname();
     const [user, setUser] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
+    const isDashboard = pathname === '/dashboard';
+
+    const handleGoHome = () => {
+        router.push('/');
+    };
+
+    const handleGoDashboard = () => {
+        router.push('/dashboard');
+    };
 
     useEffect(() => {
         async function checkUser() {
@@ -42,32 +53,36 @@ export function NavigationBar({ onGoHome, onGoDashboard }) {
             return;
         }
         setUser(null);
-        window.location.href = '/signin';
+        router.push('/signin');
     };
 
     return (
-        <nav className="flex w-full items-center justify-between rounded-2xl border border-slate-200 bg-white/95 p-4 shadow">
-            <button onClick={onGoHome}>
+        <nav
+            className={`flex w-full items-center justify-between border border-slate-200 bg-white/95 p-4 shadow ${
+                isDashboard ? '' : 'rounded-2xl'
+            }`}
+        >
+            <Link href="/">
                 <span className="text-lg font-bold text-slate-900 hover:bg-teal-50 hover:text-teal-700">Todo App</span>
-            </button>
+            </Link>
             <div className="flex gap-2">
-                <button
-                    onClick={onGoDashboard}
+                <Link
+                    href="/dashboard"
                     className="rounded-md px-3 py-1 text-sm font-medium text-slate-700 transition-colors hover:bg-teal-50 hover:text-teal-700"
                     aria-label="대시보드"
                 >
                     대시보드
-                </button>
+                </Link>
                 {!isLoading && (
                     <>
                         {user ? (
-                            <button
-                                onClick={handleSignOut}
+                            <Link
+                                href="/signout"
                                 className="rounded-md px-3 py-1 text-sm font-medium text-slate-700 transition-colors hover:bg-teal-50 hover:text-teal-700"
                                 aria-label="로그아웃"
                             >
                                 로그아웃
-                            </button>
+                            </Link>
                         ) : (
                             <Link
                                 href="/signin"
