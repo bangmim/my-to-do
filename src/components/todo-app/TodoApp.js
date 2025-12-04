@@ -1,33 +1,48 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { NavigationBar } from '@/components/navigation-bar/NavigationBar';
 import { TodoSection } from '@/components/todo-section/TodoSection';
 import { FloatingButton } from '@/components/floating-button/FloatingButton';
 import { AddTodoModal } from '@/components/add-todo-modal/AddTodoModal';
 import { supabase } from '@/lib/supabaseClient';
+import { getCurrentUser } from '@/lib/auth';
 
 export function TodoApp() {
+    const router = useRouter();
     const [todos, setTodos] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [newTodoText, setNewTodoText] = useState('');
     const [user, setUser] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+
     useEffect(() => {
         const getUser = async () => {
             try {
-                const { data: user, error } = await supabase.auth.getSession();
-                if (error) {
-                    console.error('Error fetching user:', error);
-                    // 인증 에러 시 로그인 페이지로 리다이렉트하지 않음 (홈은 공개 페이지)
+                const {
+                    data: { user },
+                    error,
+                } = await getCurrentUser();
+                if (error || !user) {
+                    // AuthSessionMissingError는 정상적인 상황 (로그인하지 않은 상태)
+                    // 에러 로그를 출력하지 않고 조용히 리다이렉트
+                    router.replace('/signin');
                     return;
                 }
-                setUser(user);
+                setUser({ user });
             } catch (err) {
-                console.error('Unexpected error:', err);
+                // 예상치 못한 에러만 로그 출력
+                if (err?.message && !err.message.includes('Auth session missing')) {
+                    console.error('Unexpected error:', err);
+                }
+                router.replace('/signin');
+            } finally {
+                setIsLoading(false);
             }
         };
         getUser();
-    }, []);
+    }, [router]);
     useEffect(() => {
         const fetchTodos = async () => {
             if (!user?.user?.id) return;
@@ -139,6 +154,20 @@ export function TodoApp() {
             setIsModalOpen(false);
         }
     };
+
+    if (isLoading) {
+        return (
+            <div className="flex min-h-screen w-full items-center justify-center bg-gray-50 px-4 py-10">
+                <div className="text-center">
+                    <p className="text-slate-600">로딩 중...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (!user?.user) {
+        return null;
+    }
 
     return (
         <div className="flex min-h-screen w-full items-center justify-center bg-gray-50 px-4 py-10">

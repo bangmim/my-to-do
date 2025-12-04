@@ -45,13 +45,13 @@ export function NavigationBar() {
             return;
         }
         setUser(null);
-        router.push('/signin');
+        router.replace('/signin');
     };
 
     const handleDashboardClick = (e) => {
         if (!user) {
             e.preventDefault();
-            router.push('/signin');
+            router.replace('/signin');
         }
     };
 

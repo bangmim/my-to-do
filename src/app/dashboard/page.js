@@ -23,14 +23,18 @@ export default function DashboardPage() {
                     error,
                 } = await getCurrentUser();
                 if (error || !user) {
-                    console.error('Error fetching user:', error);
+                    // AuthSessionMissingError는 정상적인 상황 (로그인하지 않은 상태)
+                    // 에러 로그를 출력하지 않고 조용히 리다이렉트
                     router.replace('/signin');
                     return;
                 }
                 setUser(user || null);
                 fetchStats(user.id);
             } catch (err) {
-                console.error('Error:', err);
+                // AuthSessionMissingError는 정상적인 상황
+                if (err?.message && !err.message.includes('Auth session missing')) {
+                    console.error('Error:', err);
+                }
                 router.replace('/signin');
             } finally {
                 setIsLoading(false);

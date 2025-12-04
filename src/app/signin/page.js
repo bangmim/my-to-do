@@ -19,7 +19,11 @@ export default function LoginPage() {
                     return;
                 }
             } catch (err) {
-                // 에러는 무시 (로그인되지 않은 상태)
+                // AuthSessionMissingError는 정상적인 상황 (로그인되지 않은 상태)
+                // 에러는 무시하고 로그인 페이지 유지
+                if (err?.message && !err.message.includes('Auth session missing')) {
+                    console.error('Unexpected error:', err);
+                }
             } finally {
                 setIsChecking(false);
             }
