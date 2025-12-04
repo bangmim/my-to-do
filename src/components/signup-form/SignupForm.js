@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import PropTypes from 'prop-types';
 import { signUp } from '@/lib/auth';
 
@@ -12,22 +12,22 @@ export function SignupForm({ onSuccess, onError }) {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
 
-    const handleEmailChange = useCallback((event) => {
+    const handleEmailChange = (event) => {
         setEmail(event.target.value);
         setError('');
-    }, []);
+    };
 
-    const handlePasswordChange = useCallback((event) => {
+    const handlePasswordChange = (event) => {
         setPassword(event.target.value);
         setError('');
-    }, []);
+    };
 
-    const handleConfirmPasswordChange = useCallback((event) => {
+    const handleConfirmPasswordChange = (event) => {
         setConfirmPassword(event.target.value);
         setError('');
-    }, []);
+    };
 
-    const validateForm = useCallback(() => {
+    const validateForm = () => {
         if (!email.trim()) {
             setError('이메일을 입력해주세요.');
             return false;
@@ -54,44 +54,41 @@ export function SignupForm({ onSuccess, onError }) {
         }
 
         return true;
-    }, [email, password, confirmPassword]);
+    };
 
-    const handleSubmit = useCallback(
-        async (event) => {
-            event.preventDefault();
-            setError('');
+    const handleSubmit = async (event) => {
+        event.preventDefault();
+        setError('');
 
-            if (!validateForm()) {
+        if (!validateForm()) {
+            return;
+        }
+
+        setIsLoading(true);
+
+        try {
+            const { error: signUpError, data } = await signUp(email, password);
+
+            if (signUpError) {
+                setError(signUpError);
+                if (onError) onError(signUpError);
                 return;
             }
 
-            setIsLoading(true);
+            setSuccess(true);
+            setError('');
 
-            try {
-                const { error: signUpError, data } = await signUp(email, password);
-
-                if (signUpError) {
-                    setError(signUpError);
-                    if (onError) onError(signUpError);
-                    return;
-                }
-
-                setSuccess(true);
-                setError('');
-
-                if (onSuccess) {
-                    onSuccess(data);
-                }
-            } catch (err) {
-                const errorMessage = err.message || '회원가입 중 오류가 발생했습니다.';
-                setError(errorMessage);
-                if (onError) onError(errorMessage);
-            } finally {
-                setIsLoading(false);
+            if (onSuccess) {
+                onSuccess(data);
             }
-        },
-        [email, password, validateForm, onSuccess, onError]
-    );
+        } catch (err) {
+            const errorMessage = err.message || '회원가입 중 오류가 발생했습니다.';
+            setError(errorMessage);
+            if (onError) onError(errorMessage);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     if (success) {
         return (

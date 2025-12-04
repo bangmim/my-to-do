@@ -1,7 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
-import PropTypes from 'prop-types';
+import { useEffect, useState } from 'react';
 import { NavigationBar } from '@/components/navigation-bar/NavigationBar';
 import { TodoSection } from '@/components/todo-section/TodoSection';
 import { FloatingButton } from '@/components/floating-button/FloatingButton';
@@ -67,13 +66,13 @@ export function TodoApp() {
         }
     };
 
-    const handleDelete = useCallback(async (id) => {
+    const handleDelete = async (id) => {
         if (!confirm('정말 이 할 일을 삭제하시겠습니까?')) {
             return;
         }
 
         try {
-            const { error } = await supabase.from('todos').delete().eq('id', id);
+            const { error } = await supabase.from('todos').delete().eq('id', id).eq('user_id', user.user.id);
 
             if (error) {
                 console.error('Error deleting todo:', error);
@@ -86,20 +85,20 @@ export function TodoApp() {
             console.error('Unexpected error:', err);
             alert('예상치 못한 오류가 발생했습니다.');
         }
-    }, []);
+    };
 
-    const handleModalChange = useCallback((event) => {
+    const handleModalChange = (event) => {
         setNewTodoText(event.target.value);
-    }, []);
+    };
 
-    const handleCloseModal = useCallback(() => {
+    const handleCloseModal = () => {
         setIsModalOpen(false);
         setNewTodoText('');
-    }, []);
+    };
 
-    const handleOpenModal = useCallback(() => {
+    const handleOpenModal = () => {
         setIsModalOpen(true);
-    }, []);
+    };
 
     const handleAddTodo = async (event) => {
         event.preventDefault();
@@ -136,13 +135,13 @@ export function TodoApp() {
         }
     };
 
-    const handleGoHome = useCallback(() => {
+    const handleGoHome = () => {
         window.location.href = '/';
-    }, []);
+    };
 
-    const handleGoDashboard = useCallback(() => {
+    const handleGoDashboard = () => {
         window.location.href = '/dashboard';
-    }, []);
+    };
 
     return (
         <div className="flex min-h-screen w-full items-center justify-center bg-gray-50 px-4 py-10">

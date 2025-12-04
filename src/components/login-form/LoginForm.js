@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import PropTypes from 'prop-types';
 import { signIn } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
@@ -12,17 +12,17 @@ export function LoginForm({ onSuccess, onError }) {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
 
-    const handleEmailChange = useCallback((event) => {
+    const handleEmailChange = (event) => {
         setEmail(event.target.value);
         setError('');
-    }, []);
+    };
 
-    const handlePasswordChange = useCallback((event) => {
+    const handlePasswordChange = (event) => {
         setPassword(event.target.value);
         setError('');
-    }, []);
+    };
 
-    const validateForm = useCallback(() => {
+    const validateForm = () => {
         if (!email.trim()) {
             setError('이메일을 입력해주세요.');
             return false;
@@ -39,43 +39,40 @@ export function LoginForm({ onSuccess, onError }) {
         }
 
         return true;
-    }, [email, password]);
+    };
 
-    const handleSubmit = useCallback(
-        async (event) => {
-            event.preventDefault();
-            setError('');
+    const handleSubmit = async (event) => {
+        event.preventDefault();
+        setError('');
 
-            if (!validateForm()) {
+        if (!validateForm()) {
+            return;
+        }
+
+        setIsLoading(true);
+
+        try {
+            const { error: signInError, data } = await signIn(email, password);
+
+            if (signInError) {
+                setError(signInError);
+                if (onError) onError(signInError);
                 return;
             }
 
-            setIsLoading(true);
-
-            try {
-                const { error: signInError, data } = await signIn(email, password);
-
-                if (signInError) {
-                    setError(signInError);
-                    if (onError) onError(signInError);
-                    return;
-                }
-
-                if (onSuccess) {
-                    onSuccess(data);
-                } else {
-                    router.push('/');
-                }
-            } catch (err) {
-                const errorMessage = err.message || '로그인 중 오류가 발생했습니다.';
-                setError(errorMessage);
-                if (onError) onError(errorMessage);
-            } finally {
-                setIsLoading(false);
+            if (onSuccess) {
+                onSuccess(data);
+            } else {
+                router.push('/');
             }
-        },
-        [email, password, validateForm, onSuccess, onError, router]
-    );
+        } catch (err) {
+            const errorMessage = err.message || '로그인 중 오류가 발생했습니다.';
+            setError(errorMessage);
+            if (onError) onError(errorMessage);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     return (
         <form onSubmit={handleSubmit} className="space-y-4">
